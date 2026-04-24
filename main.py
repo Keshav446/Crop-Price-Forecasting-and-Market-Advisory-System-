@@ -100,40 +100,131 @@ def recommendations(ya, yp):
     return out
 
 # ── Plots ─────────────────────────────────────────────────────────────────────
-def sorted_plot(yt, yp, title, path, ca, cp, n=PLOT_SAMPLES):
-    n=min(n,len(yt))
-    idx=np.argsort(yt[:n])
-    fig,ax=plt.subplots(figsize=(14,5))
-    ax.plot(yt[:n][idx],color=ca,lw=1.5,alpha=0.9,label="Actual")
-    ax.plot(yp[:n][idx],color=cp,lw=1.5,alpha=0.9,label="Predicted")
-    ax.set_xlabel("Sample Index (sorted by actual)",fontsize=12)
-    ax.set_ylabel("Price (₹)",fontsize=12)
-    ax.set_title(title,fontsize=14,fontweight="bold")
-    ax.legend(fontsize=11); ax.grid(True,ls="--",alpha=0.5)
-    fig.tight_layout(); fig.savefig(path,dpi=150); plt.close(fig)
+# Shared style constants — applied identically across ALL models
+_ACTUAL_LW    = 2.5      # thick actual line
+_PRED_LW      = 1.4      # thinner predicted line
+_ACTUAL_ALPHA = 1.0      # fully opaque actual
+_PRED_ALPHA   = 0.60     # semi-transparent predicted
+_ACTUAL_ZORD  = 3        # actual drawn on top
+_PRED_ZORD    = 2
+_FIG_BG       = "#F8F9FA"
+_AX_BG        = "#FFFFFF"
+_GRID_COLOR   = "#DDDDDD"
+
+
+def actual_vs_predicted_plot(yt, yp, title, path, color_actual, color_pred,
+                              split_label="Test", n=PLOT_SAMPLES):
+    """
+    Reusable, presentation-ready Actual vs Predicted sorted line plot.
+
+    Design rules (identical for every model):
+      • Sort by actual price so the x-axis represents a meaningful price range.
+      • Actual  : thick (lw=2.5), fully opaque, drawn on top  (zorder=3).
+      • Predicted: thinner (lw=1.4), 60 % opacity, behind actual (zorder=2).
+      • No smoothing — raw values only.
+      • Clean white plot area, light grid, minimal spines.
+    """
+    n   = min(n, len(yt))
+    idx = np.argsort(yt[:n])
+    yt_sorted = yt[:n][idx]
+    yp_sorted = yp[:n][idx]
+    x = np.arange(n)
+
+    fig, ax = plt.subplots(figsize=(14, 5))
+    fig.patch.set_facecolor(_FIG_BG)
+    ax.set_facecolor(_AX_BG)
+
+    # ── Predicted first (background) ─────────────────────────────────────────
+    ax.plot(x, yp_sorted,
+            color=color_pred, lw=_PRED_LW, alpha=_PRED_ALPHA,
+            zorder=_PRED_ZORD, label="Predicted Price")
+
+    # ── Actual on top (foreground) ────────────────────────────────────────────
+    ax.plot(x, yt_sorted,
+            color=color_actual, lw=_ACTUAL_LW, alpha=_ACTUAL_ALPHA,
+            zorder=_ACTUAL_ZORD, label="Actual Price")
+
+    # ── Axes & labels ─────────────────────────────────────────────────────────
+    ax.set_xlabel(f"Sample Index (sorted by actual price)  [{n:,} samples]",
+                  fontsize=12, color="#444444")
+    ax.set_ylabel("Price (₹)", fontsize=12, color="#444444")
+    ax.set_title(title, fontsize=14, fontweight="bold", color="#111111", pad=10)
+
+    # ── Legend ────────────────────────────────────────────────────────────────
+    legend = ax.legend(fontsize=11, loc="upper left",
+                       framealpha=0.9, edgecolor="#CCCCCC")
+    for line in legend.get_lines():
+        line.set_linewidth(3.0)                 # bolder lines in legend box
+    legend.get_texts()[0].set_fontweight("bold")  # "Actual Price" → bold text
+
+    # ── Grid & spines ─────────────────────────────────────────────────────────
+    ax.grid(True, ls="--", lw=0.7, color=_GRID_COLOR, alpha=0.9)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_edgecolor("#CCCCCC")
+    ax.spines["bottom"].set_edgecolor("#CCCCCC")
+    ax.tick_params(colors="#555555", labelsize=10)
+
+    fig.tight_layout()
+    fig.savefig(path, dpi=180, facecolor=fig.get_facecolor())
+    plt.close(fig)
     print(f"  [PLOT] {os.path.basename(path)}")
+
 
 def scatter_plot(yt, yp, title, path, color, n=PLOT_SAMPLES):
-    n=min(n,len(yt))
-    lo,hi=min(yt[:n].min(),yp[:n].min()),max(yt[:n].max(),yp[:n].max())
-    fig,ax=plt.subplots(figsize=(7,7))
-    ax.scatter(yt[:n],yp[:n],alpha=0.35,s=10,color=color)
-    ax.plot([lo,hi],[lo,hi],"r--",lw=2,label="Ideal y=x")
-    ax.set_xlabel("Actual (₹)",fontsize=12); ax.set_ylabel("Predicted (₹)",fontsize=12)
-    ax.set_title(title,fontsize=14,fontweight="bold")
-    ax.legend(fontsize=11); ax.grid(True,ls="--",alpha=0.5)
-    fig.tight_layout(); fig.savefig(path,dpi=150); plt.close(fig)
+    """Actual vs Predicted scatter with y=x ideal line."""
+    n = min(n, len(yt))
+    lo = min(yt[:n].min(), yp[:n].min())
+    hi = max(yt[:n].max(), yp[:n].max())
+
+    fig, ax = plt.subplots(figsize=(7, 7))
+    fig.patch.set_facecolor(_FIG_BG)
+    ax.set_facecolor(_AX_BG)
+
+    ax.scatter(yt[:n], yp[:n], alpha=0.30, s=10, color=color, zorder=2)
+    ax.plot([lo, hi], [lo, hi], color="#E53935", lw=2,
+            ls="--", label="Ideal  y = x", zorder=3)
+
+    ax.set_xlabel("Actual Price (₹)", fontsize=12, color="#444444")
+    ax.set_ylabel("Predicted Price (₹)", fontsize=12, color="#444444")
+    ax.set_title(title, fontsize=14, fontweight="bold", color="#111111", pad=10)
+    ax.legend(fontsize=11, framealpha=0.9, edgecolor="#CCCCCC")
+    ax.grid(True, ls="--", lw=0.7, color=_GRID_COLOR, alpha=0.9)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_edgecolor("#CCCCCC")
+    ax.spines["bottom"].set_edgecolor("#CCCCCC")
+    ax.tick_params(colors="#555555", labelsize=10)
+
+    fig.tight_layout()
+    fig.savefig(path, dpi=180, facecolor=fig.get_facecolor())
+    plt.close(fig)
     print(f"  [PLOT] {os.path.basename(path)}")
 
+
 def model_plots(name, ytr, yptr, yte, ypte):
-    ca,cp=PALETTE[name]
-    nm=name.lower()
-    sorted_plot(ytr,yptr,f"{name} – Train: Actual vs Predicted",
-                os.path.join(OUT_DIR,f"{nm}_train_sorted.png"),ca,cp)
-    sorted_plot(yte,ypte,f"{name} – Test: Actual vs Predicted",
-                os.path.join(OUT_DIR,f"{nm}_test_sorted.png"),ca,cp)
-    scatter_plot(yte,ypte,f"{name} – Scatter (Test)",
-                 os.path.join(OUT_DIR,f"{nm}_scatter.png"),ca)
+    """Generate train sorted, test sorted, and scatter plots for one model."""
+    ca, cp = PALETTE[name]
+    nm     = name.lower()
+
+    actual_vs_predicted_plot(
+        ytr, yptr,
+        title=f"{name} — Train: Actual vs Predicted",
+        path=os.path.join(OUT_DIR, f"{nm}_train_sorted.png"),
+        color_actual=ca, color_pred=cp, split_label="Train",
+    )
+    actual_vs_predicted_plot(
+        yte, ypte,
+        title=f"{name} — Test: Actual vs Predicted",
+        path=os.path.join(OUT_DIR, f"{nm}_test_sorted.png"),
+        color_actual=ca, color_pred=cp, split_label="Test",
+    )
+    scatter_plot(
+        yte, ypte,
+        title=f"{name} — Scatter Plot (Test Set)",
+        path=os.path.join(OUT_DIR, f"{nm}_scatter.png"),
+        color=ca,
+    )
 
 def feat_imp_plot(name, cols, imp):
     fi=pd.Series(imp,index=cols).sort_values()
@@ -431,7 +522,7 @@ def run_svr(train_df, test_df):
     tr=metrics(ytr_s,yptr_s,"SVR TRAIN(subset)"); te=metrics(yte,ypte,"SVR TEST")
     joblib.dump(m,os.path.join(OUT_DIR,"svr_model.pkl"))
     # For plots use subset as "train" series
-    model_plots("SVR",ytr_s,yptr_s,yte,ypte)
+    model_plots("SVR", ytr_s, yptr_s, yte, ypte)
     return {"name":"SVR","train":tr,"test":te,"y_test":yte,"y_pred_test":ypte}
 
 # ── Summary ───────────────────────────────────────────────────────────────────
