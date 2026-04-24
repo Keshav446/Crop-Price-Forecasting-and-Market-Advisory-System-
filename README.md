@@ -1,52 +1,110 @@
-# Crop Price Forecasting & Market Advisory System
+# 🌾 AI-Based Crop Price Forecasting & Market Advisory System
 
-An end-to-end ML pipeline that trains **three regression models** on agricultural data and generates a comprehensive comparison dashboard.
+## 👨‍💻 Team Members
+- Keshav Maheshwari  
+- Vibhuti Seth  
+- Parth Lavti 
 
-## Models
-| Model | Preprocessing |
-|-------|--------------|
-| Linear Regression | One-hot encoding + StandardScaler |
-| Random Forest | LabelEncoder (no scaling needed) |
-| XGBoost | LabelEncoder (no scaling needed) |
+## 📌 Project Overview
+This project aims to predict crop prices using Machine Learning techniques and provide decision support to farmers. The system analyzes historical market data and predicts future prices to help farmers decide the optimal time to sell their crops.
 
-## Dataset
-| File | Rows | Columns |
-|------|------|---------|
-| `train_data_150k.csv` | 150,000 | season, temperature, rainfall, humidity, soil_moisture, demand_index, price |
-| `test_data_60k.csv`   | 60,000  | same |
+---
 
-## How to Run
+## 🎯 Problem Statement
+Crop prices fluctuate heavily, creating uncertainty for farmers.  
+Decisions are often based on experience rather than data, leading to financial losses.  
+This project provides a data-driven solution using Machine Learning.
 
-```bash
-# 1. Install dependencies
-pip install scikit-learn xgboost pandas numpy matplotlib joblib
+---
 
-# 2. Run the full pipeline
-python main.py
-```
+## 💡 Motivation
+- Crop prices fluctuate unpredictably  
+- Farmers rely on intuition instead of data  
+- Wrong selling time leads to losses  
+- Need for ML-based forecasting system  
 
-## Outputs
-| File | Description |
-|------|-------------|
-| `final_model_comparison.png` | Master dashboard (metrics + scatter plots + summary table) |
-| `lr_train_sorted.png` / `lr_test_sorted.png` / `lr_scatter.png` | LR plots |
-| `rf_train_sorted.png` / `rf_test_sorted.png` / `rf_scatter.png` | RF plots |
-| `xgboost_train_sorted.png` / `xgboost_test_sorted.png` / `xgboost_scatter.png` | XGBoost plots |
-| `rf_feature_importance.png` / `xgb_feature_importance.png` | Feature importance charts |
-| `lr_model.pkl`, `lr_scaler.pkl` | Saved LR artefacts |
-| `rf_model.pkl` | Saved RF model |
-| `xgb_model.json` | Saved XGBoost model |
+---
 
-## Advisory Logic
-| Predicted change vs Actual | Signal |
-|----------------------------|--------|
-| ≥ +10 % | **HOLD** |
-| +2 % – +10 % | **WAIT** |
-| < +2 % | **SELL** |
+## 📊 Dataset
+- **Source:** Kaggle  
+- **Training Data:** 150,000 records  
+- **Testing Data:** 60,000 records  
 
-## Metrics Reported
-- MAE (Mean Absolute Error)
-- RMSE (Root Mean Squared Error)
-- R² Score
+---
 
-Both **training** and **testing** metrics are reported for every model.
+## ⚙️ Features Used
+- Season  
+- Temperature  
+- Rainfall  
+- Humidity  
+- Soil Moisture  
+- Demand Index  
+---
+
+## 🧠 Feature Engineering
+- Extracted **Year & Month** from date  
+- Converted categorical data using encoding  
+- Selected relevant features for training  
+---
+
+## 🤖 Models Used
+- Linear Regression  
+- Random Forest(Bagging Algorithm)
+- XGBoost(Boosting Algorithm)
+- Support Vector Regression (SVR)  
+
+---
+
+## 📈 Model Evaluation Metrics
+- **MAE (Mean Absolute Error)**  
+- **RMSE (Root Mean Squared Error)**  
+- **R² Score (Accuracy for regression)**  
+
+---  
+
+## 🏆 Results
+- Linear Regression performed best  
+- Achieved lowest MAE and highest R²  
+- XGBoost also showed strong performance  
+
+---
+
+## 📊 Key Insights
+- Demand Index has highest impact on price  
+- Rainfall significantly affects crop prices  
+- Environmental factors play a major role  
+
+---
+
+## 🚀 System Workflow
+1. Data Collection  
+2. Data Cleaning  
+3. Feature Engineering  
+4. Model Training  
+5. Prediction  
+6. Advisory Generation  
+
+---
+
+## ⚠️ Limitations
+- No real-time data integration  
+- No weather API used  
+- Static dataset  
+
+---
+
+## 🔮 Future Scope
+- Real-time market data integration  
+- Weather & news analysis  
+- Mobile app for farmers  
+- Advanced deep learning models  
+
+---
+
+## 📎 Repository Link
+[GitHub Repository](https://github.com/Keshav446/Crop-Price-Forecasting-and-Market-Advisory-System-.git)
+
+---
+
+## 🎤 Conclusion
+This project demonstrates how Machine Learning can be used to provide data-driven insights and support farmers in making better financial decisions.
